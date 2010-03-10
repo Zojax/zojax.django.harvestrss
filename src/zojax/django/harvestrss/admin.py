@@ -59,7 +59,7 @@ class HarvestedItemAdmin(admin.ModelAdmin):
                 'fields': ('categories', )
             }),
             (None, {
-                'fields': ('title', 'author', 'summary', 'published')
+                'fields': ('title', 'author', 'summary', 'published', 'url')
             }),
         )
 
@@ -73,5 +73,9 @@ class HarvestedItemAdmin(admin.ModelAdmin):
     publish.short_description = _(u"Publish selected items")
 
     actions = ['publish']
+    
+    def has_add_permission(self, request):
+        return False
 
+    
 admin.site.register(HarvestedItem, HarvestedItemAdmin)        

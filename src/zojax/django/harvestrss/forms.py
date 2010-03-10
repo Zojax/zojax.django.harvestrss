@@ -5,6 +5,7 @@ from zojax.django.categories.forms import CategoriesField
 from zojax.django.categories.models import Category
 from zojax.django.harvestrss.models import HarvestedFeed, HarvestedItem
 import feedparser
+from django import forms
 
 
 class HarvestedFeedAdminForm(ModelForm):
@@ -19,20 +20,31 @@ class HarvestedFeedAdminForm(ModelForm):
         if instance and instance.url:
             self.fields['url'].widget.attrs['disabled'] = "disabled"
         self.fields['source_url'].widget.attrs['disabled'] = "disabled"
-                
+        
+    def clean_url(self):
+        data = self.cleaned_data['url']
+        try:
+            HarvestedFeed.objects.get(url=data)
+            raise forms.ValidationError(_("The feed with this URL is registered already."))
+        except HarvestedFeed.DoesNotExist:
+            pass
+
+        return data
+                    
     def clean(self):
         cleaned_data = self.cleaned_data
-        url = cleaned_data['url']
-        try:
-            parsed = feedparser.parse(url)
-        except:
-            self._errors["url"] = ErrorList([self.error_messages['invalid_feed_url']])
-            del cleaned_data["url"]
-            return cleaned_data
-        if not parsed.version:
-            self._errors["url"] = ErrorList([self.error_messages['invalid_feed_url']])
-            del cleaned_data["url"]
-            return cleaned_data
+        url = cleaned_data.get('url')
+        if url:
+            try:
+                parsed = feedparser.parse(url)
+            except:
+                self._errors["url"] = ErrorList([self.error_messages['invalid_feed_url']])
+                del cleaned_data["url"]
+                return cleaned_data
+            if not parsed.version:
+                self._errors["url"] = ErrorList([self.error_messages['invalid_feed_url']])
+                del cleaned_data["url"]
+                return cleaned_data
 
         return cleaned_data
     
@@ -61,6 +73,7 @@ class HarvestedItemAdminForm(ModelForm):
         instance = getattr(self, 'instance', None)
         if instance and not self.fields['categories'].initial:
             self.fields['categories'].initial = Category.objects.get_for_object(instance)
+        self.fields['url'].widget.attrs['readonly'] = "readonly"
 
     def save(self, commit=True):
         instance = super(HarvestedItemAdminForm, self).save(commit)
@@ -69,4 +82,4 @@ class HarvestedItemAdminForm(ModelForm):
     
     class Meta:
         model = HarvestedItem
-        fields = ('categories', 'title', 'author', 'summary', 'published', )                
+        fields = ('categories', 'title', 'author', 'summary', 'published', 'url')                
