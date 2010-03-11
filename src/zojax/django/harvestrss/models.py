@@ -84,6 +84,12 @@ class HarvestedItemIdentifier(models.Model):
         verbose_name = _(u"Harvested RSS item identifier")
         verbose_name_plural = _(u"Harvested RSS item identifiers")
     
+
+class HarvestedItemManager(models.Manager):
+    
+    def published(self):
+        return super(HarvestedItemManager, self).get_query_set().filter(published=True) 
+
     
 class HarvestedItem(models.Model):
 
@@ -104,6 +110,8 @@ class HarvestedItem(models.Model):
     published_on = models.DateTimeField(null=True, blank=True)
     
     published = models.BooleanField(default=False)
+
+    objects = HarvestedItemManager()
     
     def __unicode__(self):
         return self.title or self.url
