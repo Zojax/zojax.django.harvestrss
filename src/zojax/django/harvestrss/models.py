@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from zojax.django.categories import register
+from zojax.django.contentitem.models import ContentItem
 import BeautifulSoup
 import datetime
 import feedparser
@@ -31,8 +32,8 @@ class HarvestedFeed(models.Model):
         cnt = 0
         for entry in parsed.entries:
             identifier = entry.id
-            if HarvestedItemIdentifier.objects.filter(feed=self, identifier=identifier).count() or \
-               HarvestedItem.objects.filter(feed=self, identifier=identifier).count():
+            if ArticleIdentifier.objects.filter(feed=self, identifier=identifier).count() or \
+               Article.objects.filter(feed=self, identifier=identifier).count():
                 continue
                 
             url = entry.link
@@ -52,17 +53,16 @@ class HarvestedFeed(models.Model):
                 summary = unicode(soup)
             
             author = getattr(entry, "author", None)
-            published_on = getattr(entry, "published_parsed", getattr(entry, "created_parsed", getattr(entry, "updated_parsed", None)))
-            if published_on:
-                published_on = datetime.datetime(*published_on[:6])
+            article_published_on = getattr(entry, "published_parsed", getattr(entry, "created_parsed", getattr(entry, "updated_parsed", None)))
+            if article_published_on:
+                article_published_on = datetime.datetime(*article_published_on[:6])
 
-            item = HarvestedItem(feed=self, identifier=identifier, harvested_on=now, url=url)
-            item.title = title
+            item = Article(feed=self, identifier=identifier, title=title, url=url)
             item.author = author
             item.summary = summary
-            item.published_on = published_on
+            item.article_published_on = article_published_on
             item.save()
-            HarvestedItemIdentifier(feed=self, identifier=identifier).save()
+            ArticleIdentifier(feed=self, identifier=identifier).save()
             cnt += 1
         self.harvested_on = now
         self.harvested = True
@@ -70,7 +70,7 @@ class HarvestedFeed(models.Model):
         return cnt
 
 
-class HarvestedItemIdentifier(models.Model):
+class ArticleIdentifier(models.Model):
     
     feed = models.ForeignKey(HarvestedFeed)
 
@@ -81,46 +81,28 @@ class HarvestedItemIdentifier(models.Model):
 
     class Meta:
         unique_together = (("feed", "identifier"),)
-        verbose_name = _(u"Harvested RSS item identifier")
-        verbose_name_plural = _(u"Harvested RSS item identifiers")
+        verbose_name = _(u"Article identifier")
+        verbose_name_plural = _(u"Article identifiers")
     
 
-class HarvestedItemManager(models.Manager):
-    
-    def published(self):
-        return super(HarvestedItemManager, self).get_query_set().filter(published=True) 
-
-    
-class HarvestedItem(models.Model):
+class Article(ContentItem):
 
     feed = models.ForeignKey(HarvestedFeed)
 
     identifier = models.CharField(max_length=300, db_index=True)
     
-    harvested_on = models.DateTimeField()  
-
     url = models.URLField(max_length=300)
     
-    title = models.CharField(max_length=150, null=True, blank=True)
-     
     author = models.CharField(max_length=150, null=True, blank=True) 
      
     summary = models.TextField(null=True, blank=True)
     
-    published_on = models.DateTimeField(null=True, blank=True)
+    article_published_on = models.DateTimeField(null=True, blank=True)
     
-    published = models.BooleanField(default=False)
-
-    objects = HarvestedItemManager()
-    
-    def __unicode__(self):
-        return self.title or self.url
-
     class Meta:
-        ordering = ('-harvested_on',)
-        verbose_name = _(u"Harvested RSS item")
-        verbose_name_plural = _(u"Harvested RSS items")
+        ordering = ('-created_on',)
+        verbose_name = _(u"Article")
+        verbose_name_plural = _(u"Articles")
 
 
-register(HarvestedItem)
-
+register(Article)

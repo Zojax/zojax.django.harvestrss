@@ -1,11 +1,11 @@
+from django import forms
 from django.forms.models import ModelForm
 from django.forms.util import ErrorList
 from django.utils.translation import ugettext_lazy as _
 from zojax.django.categories.forms import CategoriesField
 from zojax.django.categories.models import Category
-from zojax.django.harvestrss.models import HarvestedFeed, HarvestedItem
+from zojax.django.harvestrss.models import HarvestedFeed, Article
 import feedparser
-from django import forms
 
 
 class HarvestedFeedAdminForm(ModelForm):
@@ -64,22 +64,22 @@ class HarvestedFeedAdminForm(ModelForm):
         fields = ('url', 'title', 'source_url')        
         
 
-class HarvestedItemAdminForm(ModelForm):
+class ArticleAdminForm(ModelForm):
     
     categories = CategoriesField(required=True)
 
     def __init__(self, *args, **kwargs):
-        super(HarvestedItemAdminForm, self).__init__(*args, **kwargs)
+        super(ArticleAdminForm, self).__init__(*args, **kwargs)
         instance = getattr(self, 'instance', None)
         if instance and not self.fields['categories'].initial:
             self.fields['categories'].initial = Category.objects.get_for_object(instance)
         self.fields['url'].widget.attrs['readonly'] = "readonly"
 
     def save(self, commit=True):
-        instance = super(HarvestedItemAdminForm, self).save(commit)
+        instance = super(ArticleAdminForm, self).save(commit)
         Category.objects.update_categories(instance, self.cleaned_data['categories'])
         return instance
     
     class Meta:
-        model = HarvestedItem
+        model = Article
         fields = ('categories', 'title', 'author', 'summary', 'published', 'url')                

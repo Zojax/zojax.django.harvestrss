@@ -2,9 +2,9 @@ from django.conf import settings
 from django.contrib import admin
 from django.utils import dateformat
 from django.utils.translation import ugettext_lazy as _, ungettext_lazy
-from zojax.django.harvestrss.forms import HarvestedFeedAdminForm,\
-    HarvestedItemAdminForm
-from zojax.django.harvestrss.models import HarvestedFeed, HarvestedItem
+from zojax.django.harvestrss.forms import HarvestedFeedAdminForm, \
+    ArticleAdminForm
+from zojax.django.harvestrss.models import HarvestedFeed, Article
 
 
 def display_harvested_on(obj):
@@ -43,13 +43,18 @@ class HarvestedFeedAdmin(admin.ModelAdmin):
 admin.site.register(HarvestedFeed, HarvestedFeedAdmin)
 
 
+def display_created_on(obj):
+    return dateformat.format(obj.created_on, settings.DATETIME_FORMAT)
+display_created_on.short_description = _(u"Created on")    
+
+
 class HarvestedItemAdmin(admin.ModelAdmin):
 
-    form = HarvestedItemAdminForm
+    form = ArticleAdminForm
     
-    list_display = ('title', 'feed', display_harvested_on, 'published')
+    list_display = ('title', 'feed', display_created_on, 'published')
     list_editable = ('published',)
-    list_filter = ('published', 'feed', 'harvested_on')
+    list_filter = ('published', 'feed', 'created_on')
     
     search_fields = ('title', 'feed__title')
     
@@ -64,8 +69,12 @@ class HarvestedItemAdmin(admin.ModelAdmin):
         )
 
     def publish(self, request, queryset):
-        count = queryset.count()
-        queryset.update(published=True)
+        count = 0
+        for item in queryset:
+            if not item.published:
+                item.published = True
+                item.save()
+                count += 1
         self.message_user(request,
                           ungettext_lazy(u"%(count)d item was published",
                                          u"%(count)d items were published", count) 
@@ -78,4 +87,4 @@ class HarvestedItemAdmin(admin.ModelAdmin):
         return False
 
     
-admin.site.register(HarvestedItem, HarvestedItemAdmin)        
+admin.site.register(Article, HarvestedItemAdmin)
