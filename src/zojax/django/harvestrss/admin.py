@@ -48,7 +48,7 @@ def display_created_on(obj):
 display_created_on.short_description = _(u"Created on")    
 
 
-class HarvestedItemAdmin(admin.ModelAdmin):
+class ArticleAdmin(admin.ModelAdmin):
 
     form = ArticleAdminForm
     
@@ -87,4 +87,4 @@ class HarvestedItemAdmin(admin.ModelAdmin):
         return False
 
     
-admin.site.register(Article, HarvestedItemAdmin)
+admin.site.register(Article, ArticleAdmin)
