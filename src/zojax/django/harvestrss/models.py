@@ -104,5 +104,8 @@ class Article(ContentItem):
         verbose_name = _(u"Article")
         verbose_name_plural = _(u"Articles")
 
+    def get_absolute_url(self):
+        return self.url 
+
 
 register(Article)
