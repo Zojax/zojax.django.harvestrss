@@ -31,7 +31,7 @@ class HarvestedFeed(models.Model):
         now = datetime.datetime.now()
         cnt = 0
         for entry in parsed.entries:
-            identifier = entry.id
+            identifier = getattr(entry, 'id', entry.link)
             if ArticleIdentifier.objects.filter(feed=self, identifier=identifier).count() or \
                Article.objects.filter(feed=self, identifier=identifier).count():
                 continue
