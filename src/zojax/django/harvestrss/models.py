@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from zojax.django.categories import register
+from zojax.django.location import register as location_register
 from zojax.django.contentitem.models import ContentItem
 import BeautifulSoup
 import datetime
@@ -109,3 +110,4 @@ class Article(ContentItem):
 
 
 register(Article)
+location_register(Article)

@@ -6,6 +6,8 @@ from zojax.django.categories.forms import CategoriesField
 from zojax.django.categories.models import Category
 from zojax.django.harvestrss.models import HarvestedFeed, Article
 import feedparser
+from zojax.django.location.forms import LocationField
+from zojax.django.location.models import LocatedItem
 
 
 class HarvestedFeedAdminForm(ModelForm):
@@ -67,19 +69,17 @@ class HarvestedFeedAdminForm(ModelForm):
 class ArticleAdminForm(ModelForm):
     
     categories = CategoriesField(required=True)
+    location = LocationField(required=False)
 
     def __init__(self, *args, **kwargs):
         super(ArticleAdminForm, self).__init__(*args, **kwargs)
         instance = getattr(self, 'instance', None)
         if instance and not self.fields['categories'].initial:
             self.fields['categories'].initial = Category.objects.get_for_object(instance)
+        if instance and not self.fields['location'].initial:
+            self.fields['location'].initial = LocatedItem.objects.get_for_object(instance)
         self.fields['url'].widget.attrs['readonly'] = "readonly"
-
-    def save(self, commit=True):
-        instance = super(ArticleAdminForm, self).save(commit)
-        Category.objects.update_categories(instance, self.cleaned_data['categories'])
-        return instance
     
     class Meta:
         model = Article
-        fields = ('categories', 'title', 'author', 'summary', 'published', 'url')                
+        fields = ('categories', 'title', 'author', 'summary', 'location', 'published', 'url')                

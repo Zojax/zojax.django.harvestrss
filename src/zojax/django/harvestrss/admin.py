@@ -5,6 +5,8 @@ from django.utils.translation import ugettext_lazy as _, ungettext_lazy
 from zojax.django.harvestrss.forms import HarvestedFeedAdminForm, \
     ArticleAdminForm
 from zojax.django.harvestrss.models import HarvestedFeed, Article
+from zojax.django.categories.models import Category
+from zojax.django.location.models import LocatedItem
 
 
 def display_harvested_on(obj):
@@ -58,10 +60,19 @@ class ArticleAdmin(admin.ModelAdmin):
     
     search_fields = ('title', 'feed__title')
     
+    def save_model(self, request, obj, form, change):
+        super(DeliciousSearchAdmin, self).save_model(request, obj, form, change)
+        Category.objects.update_categories(obj, form.cleaned_data['categories'])
+        LocatedItem.objects.update(obj, form.cleaned_data['location'])
+    
     fieldsets = (
             (None, {
                 'classes': ('categories',),
                 'fields': ('categories', )
+            }),
+            (None, {
+                'classes': ('location',),
+                'fields': ('location', )
             }),
             (None, {
                 'fields': ('title', 'author', 'summary', 'published', 'url')
