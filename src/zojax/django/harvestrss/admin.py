@@ -61,7 +61,7 @@ class ArticleAdmin(admin.ModelAdmin):
     search_fields = ('title', 'feed__title')
     
     def save_model(self, request, obj, form, change):
-        super(DeliciousSearchAdmin, self).save_model(request, obj, form, change)
+        super(ArticleAdmin, self).save_model(request, obj, form, change)
         Category.objects.update_categories(obj, form.cleaned_data['categories'])
         LocatedItem.objects.update(obj, form.cleaned_data['location'])
     
