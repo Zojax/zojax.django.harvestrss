@@ -11,6 +11,8 @@ from zojax.django.location.models import LocatedItem
 
 
 class HarvestedFeedAdminForm(ModelForm):
+
+    categories = CategoriesField(required=False)
     
     error_messages = {
         'invalid_feed_url': _(u"This URL does not point to a valid RSS feed."), 
@@ -19,15 +21,16 @@ class HarvestedFeedAdminForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super(HarvestedFeedAdminForm, self).__init__(*args, **kwargs)
         instance = getattr(self, 'instance', None)
-        if instance and instance.url:
-            self.fields['url'].widget.attrs['disabled'] = "disabled"
+        if instance and not self.fields['categories'].initial:
+            self.fields['categories'].initial = Category.objects.get_for_object(instance)
         self.fields['source_url'].widget.attrs['disabled'] = "disabled"
         
     def clean_url(self):
         data = self.cleaned_data['url']
         try:
-            HarvestedFeed.objects.get(url=data)
-            raise forms.ValidationError(_("The feed with this URL is registered already."))
+            instance = getattr(self, 'instance', None)
+            if HarvestedFeed.objects.get(url=data) != instance:
+                raise forms.ValidationError(_("The feed with this URL is registered already."))
         except HarvestedFeed.DoesNotExist:
             pass
 
@@ -56,14 +59,14 @@ class HarvestedFeedAdminForm(ModelForm):
         parsed = feedparser.parse(instance.url)
         if not instance.title or instance.url != old_url:
             instance.title = parsed.feed.title
-        instance.source_url = parsed.feed.link
+        instance.source_url = getattr(parsed.feed, 'link', instance.url)
         if commit:
             instance.save()
         return instance
         
     class Meta:
         model = HarvestedFeed
-        fields = ('url', 'title', 'source_url')        
+        fields = ('categories', 'url', 'title', 'source_url', 'auto_publish')        
         
 
 class ArticleAdminForm(ModelForm):

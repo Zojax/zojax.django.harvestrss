@@ -1,8 +1,9 @@
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from zojax.django.categories import register
-from zojax.django.location import register as location_register
+from zojax.django.categories.models import Category
 from zojax.django.contentitem.models import ContentItem
+from zojax.django.location import register as location_register
 import BeautifulSoup
 import datetime
 import feedparser
@@ -19,6 +20,8 @@ class HarvestedFeed(models.Model):
     harvested = models.BooleanField(default=False)
     
     harvested_on = models.DateTimeField(null=True, blank=True)
+    
+    auto_publish = models.BooleanField(default=False)
     
     def __unicode__(self):
         return self.title or self.url
@@ -64,13 +67,19 @@ class HarvestedFeed(models.Model):
             item.author = author
             item.summary = summary
             item.article_published_on = article_published_on
+            if self.auto_publish:
+                item.published = True
             item.save()
+            Category.objects.update_categories(item, self.categories)
             ArticleIdentifier(feed=self, identifier=identifier).save()
             cnt += 1
         self.harvested_on = now
         self.harvested = True
         self.save()
         return cnt
+
+
+register(HarvestedFeed)
 
 
 class ArticleIdentifier(models.Model):

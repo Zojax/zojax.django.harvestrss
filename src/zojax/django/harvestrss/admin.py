@@ -18,7 +18,6 @@ display_harvested_on.short_description = _(u"Harvested on")
 
 class HarvestedFeedAdmin(admin.ModelAdmin):
 
-
     form = HarvestedFeedAdminForm
     
     list_display = ('title', 'url', 'harvested', display_harvested_on)
@@ -26,6 +25,20 @@ class HarvestedFeedAdmin(admin.ModelAdmin):
 
     search_fields = ('title', 'url')
     list_filter = ('harvested',)
+
+    fieldsets = (
+            (None, {
+                'classes': ('categories',),
+                'fields': ('categories', )
+            }),
+            (None, {
+                'fields': ('url', 'title', 'source_url', 'auto_publish')
+            }),
+        )
+    
+    def save_model(self, request, obj, form, change):
+        super(HarvestedFeedAdmin, self).save_model(request, obj, form, change)
+        Category.objects.update_categories(obj, form.cleaned_data['categories'])
     
     def harvest(self, request, queryset):
         feeds_count = queryset.count()
