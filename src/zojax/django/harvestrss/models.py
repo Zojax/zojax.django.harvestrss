@@ -32,12 +32,14 @@ class HarvestedFeed(models.Model):
         now = datetime.datetime.now()
         cnt = 0
         for entry in parsed.entries:
-            identifier = getattr(entry, 'id', entry.link)
+            url = getattr(entry, 'link', None)
+            if not url:
+                continue
+            identifier = getattr(entry, 'id', url)
             if ArticleIdentifier.objects.filter(feed=self, identifier=identifier).count() or \
                Article.objects.filter(feed=self, identifier=identifier).count():
                 continue
                 
-            url = entry.link
             title = entry.title
             summary = getattr(entry, "summary", None)
             if not summary:
