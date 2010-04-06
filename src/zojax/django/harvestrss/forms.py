@@ -6,7 +6,7 @@ from zojax.django.categories.forms import CategoriesField
 from zojax.django.categories.models import Category
 from zojax.django.harvestrss.models import HarvestedFeed, Article
 import feedparser
-from zojax.django.location.forms import LocationField
+from zojax.django.location.forms import LocationChoiceField
 from zojax.django.location.models import LocatedItem
 
 
@@ -72,7 +72,7 @@ class HarvestedFeedAdminForm(ModelForm):
 class ArticleAdminForm(ModelForm):
     
     categories = CategoriesField(required=True)
-    location = LocationField(required=False)
+    location = LocationChoiceField(required=False)
 
     def __init__(self, *args, **kwargs):
         super(ArticleAdminForm, self).__init__(*args, **kwargs)
