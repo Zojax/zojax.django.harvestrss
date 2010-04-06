@@ -95,10 +95,9 @@ class ArticleAdmin(admin.ModelAdmin):
     def publish(self, request, queryset):
         count = 0
         for item in queryset:
-            if not item.published:
-                item.published = True
-                item.save()
-                count += 1
+            item.published = True
+            item.save()
+            count += 1
         self.message_user(request,
                           ungettext_lazy(u"%(count)d item was published",
                                          u"%(count)d items were published", count) 

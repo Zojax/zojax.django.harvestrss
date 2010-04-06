@@ -31,6 +31,7 @@ setup(name='zojax.django.harvestrss',
           'zojax.django.categories',
           'feedparser',
           'BeautifulSoup',
+          'django-selector',
           # -*- Extra requirements: -*-
       ],
       entry_points="""

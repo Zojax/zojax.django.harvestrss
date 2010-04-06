@@ -7,6 +7,7 @@ from zojax.django.location import register as location_register
 import BeautifulSoup
 import datetime
 import feedparser
+from django.db.models import permalink
 
 
 class HarvestedFeed(models.Model):
@@ -116,8 +117,9 @@ class Article(ContentItem):
         verbose_name = _(u"Article")
         verbose_name_plural = _(u"Articles")
 
+    @permalink
     def get_absolute_url(self):
-        return self.url 
+        return ('view_article', (self.id, self.slug)) 
 
 
 register(Article)
