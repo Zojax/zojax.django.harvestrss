@@ -8,9 +8,9 @@ def view_article(request, id, slug):
     try:
         article = Article.objects.get(pk=int(id))
     except Article.DoesNotExist:
-        return Http404()
+        raise Http404()
     if not article.published:
-        return Http404()
+        raise Http404()
     if article.slug != slug:
         return HttpResponsePermanentRedirect(article.get_absolute_url())
     return render_to_response("harvestrss/article.html", {'article': article},
