@@ -4,13 +4,15 @@ from zojax.django.categories import register
 from zojax.django.categories.models import Category
 from zojax.django.contentitem.models import ContentItem
 from zojax.django.location import register as location_register
+from zojax.django.contentitem.models import CurrentSiteManager, CurrentSiteModelMixin
+from django.contrib.sites.models import Site
 import BeautifulSoup
 import datetime
 import feedparser
 from django.db.models import permalink
 
 
-class HarvestedFeed(models.Model):
+class HarvestedFeed(CurrentSiteModelMixin, models.Model):
     
     url = models.URLField(max_length=300, unique=True)
     
@@ -23,6 +25,10 @@ class HarvestedFeed(models.Model):
     harvested_on = models.DateTimeField(null=True, blank=True)
     
     auto_publish = models.BooleanField(default=False)
+    
+    sites = models.ManyToManyField(Site, blank=True, related_name="%(app_label)s_%(class)s_related")
+    
+    objects = CurrentSiteManager()
     
     def __unicode__(self):
         return self.title or self.url
