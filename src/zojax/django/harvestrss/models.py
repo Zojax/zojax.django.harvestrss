@@ -1,15 +1,23 @@
+from django.contrib.sites.models import Site
 from django.db import models
+from django.db.models import permalink
 from django.utils.translation import ugettext_lazy as _
 from zojax.django.categories import register
 from zojax.django.categories.models import Category
-from zojax.django.contentitem.models import ContentItem
+from zojax.django.contentitem.models import ContentItem, CurrentSiteManager, \
+    CurrentSiteModelMixin
 from zojax.django.location import register as location_register
-from zojax.django.contentitem.models import CurrentSiteManager, CurrentSiteModelMixin
-from django.contrib.sites.models import Site
 import BeautifulSoup
 import datetime
 import feedparser
-from django.db.models import permalink
+
+
+BLOG_TYPE = u"blog"
+
+
+FEED_TYPES = (
+    (BLOG_TYPE, _(u"Blog")),
+)
 
 
 class HarvestedFeed(CurrentSiteModelMixin, models.Model):
@@ -29,6 +37,8 @@ class HarvestedFeed(CurrentSiteModelMixin, models.Model):
     sites = models.ManyToManyField(Site, blank=True, related_name="%(app_label)s_%(class)s_related")
     
     objects = CurrentSiteManager()
+    
+    feed_type = models.CharField(max_length=30, null=True, blank=True, choices=FEED_TYPES)
     
     def __unicode__(self):
         return self.title or self.url
@@ -117,6 +127,8 @@ class Article(ContentItem):
     summary = models.TextField(null=True, blank=True)
     
     article_published_on = models.DateTimeField(null=True, blank=True)
+    
+    featured = models.BooleanField(default=False)
     
     class Meta:
         ordering = ('-created_on',)

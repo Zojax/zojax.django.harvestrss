@@ -47,14 +47,6 @@ class Migration(SchemaMigration):
             ('article_published_on', self.gf('django.db.models.fields.DateTimeField')(null=True, blank=True)),
         ))
         db.send_create_signal('harvestrss', ['Article'])
-
-        # Adding M2M table for field sites on 'Article'
-        db.create_table('harvestrss_article_sites', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('article', models.ForeignKey(orm['harvestrss.article'], null=False)),
-            ('site', models.ForeignKey(orm['sites.site'], null=False))
-        ))
-        db.create_unique('harvestrss_article_sites', ['article_id', 'site_id'])
     
     
     def backwards(self, orm):
@@ -70,9 +62,6 @@ class Migration(SchemaMigration):
 
         # Deleting model 'Article'
         db.delete_table('harvestrss_article')
-
-        # Removing M2M table for field sites on 'Article'
-        db.delete_table('harvestrss_article_sites')
     
     
     models = {
@@ -86,7 +75,6 @@ class Migration(SchemaMigration):
             'identifier': ('django.db.models.fields.CharField', [], {'max_length': '300', 'db_index': 'True'}),
             'published': ('django.db.models.fields.BooleanField', [], {'default': 'False', 'blank': 'True'}),
             'published_on': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
-            'sites': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "'harvestrss_article_related'", 'blank': 'True', 'to': "orm['sites.Site']"}),
             'slug': ('autoslug.fields.AutoSlugField', [], {'unique_with': '()', 'max_length': '50', 'populate_from': 'None', 'db_index': 'True'}),
             'summary': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'title': ('django.db.models.fields.CharField', [], {'max_length': '300'}),
@@ -107,12 +95,6 @@ class Migration(SchemaMigration):
             'source_url': ('django.db.models.fields.URLField', [], {'max_length': '300', 'null': 'True', 'blank': 'True'}),
             'title': ('django.db.models.fields.CharField', [], {'max_length': '150', 'null': 'True', 'blank': 'True'}),
             'url': ('django.db.models.fields.URLField', [], {'max_length': '300', 'unique': 'True'})
-        },
-        'sites.site': {
-            'Meta': {'object_name': 'Site', 'db_table': "'django_site'"},
-            'domain': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '50'})
         }
     }
     

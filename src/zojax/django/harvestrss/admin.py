@@ -2,10 +2,10 @@ from django.conf import settings
 from django.contrib import admin
 from django.utils import dateformat
 from django.utils.translation import ugettext_lazy as _, ungettext_lazy
+from zojax.django.categories.models import Category
 from zojax.django.harvestrss.forms import HarvestedFeedAdminForm, \
     ArticleAdminForm
 from zojax.django.harvestrss.models import HarvestedFeed, Article
-from zojax.django.categories.models import Category
 from zojax.django.location.models import LocatedItem
 
 
@@ -24,7 +24,7 @@ class HarvestedFeedAdmin(admin.ModelAdmin):
     list_display_links = ('title', )
 
     search_fields = ('title', 'url')
-    list_filter = ('harvested',)
+    list_filter = ('harvested', 'feed_type')
 
     fieldsets = (
             (None, {
@@ -32,7 +32,7 @@ class HarvestedFeedAdmin(admin.ModelAdmin):
                 'fields': ('categories', )
             }),
             (None, {
-                'fields': ('url', 'title', 'source_url', 'auto_publish')
+                'fields': ('url', 'title', 'source_url', 'feed_type', 'auto_publish')
             }),
         )
     
@@ -67,16 +67,18 @@ class ArticleAdmin(admin.ModelAdmin):
 
     form = ArticleAdminForm
     
-    list_display = ('title', 'feed', display_created_on, 'published')
-    list_editable = ('published',)
-    list_filter = ('published', 'feed', 'created_on')
+    list_display = ('title', 'feed', display_created_on, 'published', 'featured',)
+    list_editable = ('published', 'featured', )
+    list_filter = ('published', 'feed', 'created_on', 'featured', )
     
     search_fields = ('title', 'feed__title')
     
     def save_model(self, request, obj, form, change):
         super(ArticleAdmin, self).save_model(request, obj, form, change)
-        Category.objects.update_categories(obj, form.cleaned_data['categories'])
-        LocatedItem.objects.update(obj, form.cleaned_data['location'])
+        if 'categories' in form.cleaned_data:
+            Category.objects.update_categories(obj, form.cleaned_data['categories'])
+        if 'location' in form.cleaned_data:
+            LocatedItem.objects.update(obj, form.cleaned_data['location'])
     
     fieldsets = (
             (None, {
@@ -88,7 +90,7 @@ class ArticleAdmin(admin.ModelAdmin):
                 'fields': ('location', )
             }),
             (None, {
-                'fields': ('title', 'author', 'summary', 'published', 'url')
+                'fields': ('title', 'author', 'summary', 'published', 'url', 'featured', )
             }),
         )
 

@@ -5,9 +5,9 @@ from django.utils.translation import ugettext_lazy as _
 from zojax.django.categories.forms import CategoriesField
 from zojax.django.categories.models import Category
 from zojax.django.harvestrss.models import HarvestedFeed, Article
-import feedparser
 from zojax.django.location.forms import LocationChoiceField
 from zojax.django.location.models import LocatedItem
+import feedparser
 
 
 class HarvestedFeedAdminForm(ModelForm):
@@ -66,7 +66,7 @@ class HarvestedFeedAdminForm(ModelForm):
         
     class Meta:
         model = HarvestedFeed
-        fields = ('categories', 'url', 'title', 'source_url', 'auto_publish')        
+        fields = ('categories', 'url', 'title', 'source_url', 'feed_type', 'auto_publish')        
         
 
 class ArticleAdminForm(ModelForm):
@@ -85,4 +85,4 @@ class ArticleAdminForm(ModelForm):
     
     class Meta:
         model = Article
-        fields = ('categories', 'title', 'author', 'summary', 'location', 'published', 'url')                
+        fields = ('categories', 'title', 'author', 'summary', 'location', 'published', 'url', 'featured', )                
