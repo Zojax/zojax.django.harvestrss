@@ -15,6 +15,7 @@ class Migration(SchemaMigration):
             ('auto_publish', self.gf('django.db.models.fields.BooleanField')(default=False, blank=True)),
             ('source_url', self.gf('django.db.models.fields.URLField')(max_length=300, null=True, blank=True)),
             ('harvested', self.gf('django.db.models.fields.BooleanField')(default=False, blank=True)),
+            ('feed_type', self.gf('django.db.models.fields.CharField')(max_length=30, null=True, blank=True)),
             ('harvested_on', self.gf('django.db.models.fields.DateTimeField')(null=True, blank=True)),
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
         ))
@@ -38,6 +39,7 @@ class Migration(SchemaMigration):
             ('title', self.gf('django.db.models.fields.CharField')(max_length=300)),
             ('url', self.gf('django.db.models.fields.URLField')(max_length=300)),
             ('author', self.gf('django.db.models.fields.CharField')(max_length=150, null=True, blank=True)),
+            ('featured', self.gf('django.db.models.fields.BooleanField')(default=False, blank=True)),
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('created_on', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime.now)),
             ('summary', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
@@ -70,6 +72,7 @@ class Migration(SchemaMigration):
             'article_published_on': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
             'author': ('django.db.models.fields.CharField', [], {'max_length': '150', 'null': 'True', 'blank': 'True'}),
             'created_on': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
+            'featured': ('django.db.models.fields.BooleanField', [], {'default': 'False', 'blank': 'True'}),
             'feed': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['harvestrss.HarvestedFeed']"}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'identifier': ('django.db.models.fields.CharField', [], {'max_length': '300', 'db_index': 'True'}),
@@ -89,6 +92,7 @@ class Migration(SchemaMigration):
         'harvestrss.harvestedfeed': {
             'Meta': {'object_name': 'HarvestedFeed'},
             'auto_publish': ('django.db.models.fields.BooleanField', [], {'default': 'False', 'blank': 'True'}),
+            'feed_type': ('django.db.models.fields.CharField', [], {'max_length': '30', 'null': 'True', 'blank': 'True'}),
             'harvested': ('django.db.models.fields.BooleanField', [], {'default': 'False', 'blank': 'True'}),
             'harvested_on': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),

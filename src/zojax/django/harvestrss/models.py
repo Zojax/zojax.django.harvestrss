@@ -1,11 +1,9 @@
-from django.contrib.sites.models import Site
 from django.db import models
 from django.db.models import permalink
 from django.utils.translation import ugettext_lazy as _
 from zojax.django.categories import register
 from zojax.django.categories.models import Category
-from zojax.django.contentitem.models import ContentItem, CurrentSiteManager, \
-    CurrentSiteModelMixin
+from zojax.django.contentitem.models import ContentItem
 from zojax.django.location import register as location_register
 import BeautifulSoup
 import datetime
@@ -20,24 +18,14 @@ FEED_TYPES = (
 )
 
 
-class HarvestedFeed(CurrentSiteModelMixin, models.Model):
+class HarvestedFeed(models.Model):
     
     url = models.URLField(max_length=300, unique=True)
-    
     title = models.CharField(max_length=150, null=True, blank=True)
-    
     source_url = models.URLField(max_length=300, null=True, blank=True) 
-    
     harvested = models.BooleanField(default=False)
-    
     harvested_on = models.DateTimeField(null=True, blank=True)
-    
     auto_publish = models.BooleanField(default=False)
-    
-    sites = models.ManyToManyField(Site, blank=True, related_name="%(app_label)s_%(class)s_related")
-    
-    objects = CurrentSiteManager()
-    
     feed_type = models.CharField(max_length=30, null=True, blank=True, choices=FEED_TYPES)
     
     def __unicode__(self):
@@ -102,7 +90,6 @@ register(HarvestedFeed)
 class ArticleIdentifier(models.Model):
     
     feed = models.ForeignKey(HarvestedFeed)
-
     identifier = models.CharField(max_length=300, db_index=True) 
     
     def __unicode__(self):
@@ -117,17 +104,11 @@ class ArticleIdentifier(models.Model):
 class Article(ContentItem):
 
     feed = models.ForeignKey(HarvestedFeed)
-
     identifier = models.CharField(max_length=300, db_index=True)
-    
     url = models.URLField(max_length=300)
-    
     author = models.CharField(max_length=150, null=True, blank=True) 
-     
     summary = models.TextField(null=True, blank=True)
-    
     article_published_on = models.DateTimeField(null=True, blank=True)
-    
     featured = models.BooleanField(default=False)
     
     class Meta:
