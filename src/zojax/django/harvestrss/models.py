@@ -1,6 +1,9 @@
+from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.db.models import permalink
 from django.utils.translation import ugettext_lazy as _
+from django_future import schedule_job
+from django_future.models import ScheduledJob
 from zojax.django.categories import register
 from zojax.django.categories.models import Category
 from zojax.django.contentitem.models import ContentItem
@@ -18,6 +21,13 @@ FEED_TYPES = (
 )
 
 
+def harvest_feed(feed):
+    try:
+        feed.harvest()
+    finally:
+        feed.schedule_harvest()
+
+
 class HarvestedFeed(models.Model):
     
     url = models.URLField(max_length=300, unique=True)
@@ -27,6 +37,12 @@ class HarvestedFeed(models.Model):
     harvested_on = models.DateTimeField(null=True, blank=True)
     auto_publish = models.BooleanField(default=False)
     feed_type = models.CharField(max_length=30, null=True, blank=True, choices=FEED_TYPES)
+
+    active = models.BooleanField(default=True)
+    harvest_begin_time = models.TimeField(default=datetime.time(8))
+    harvest_interval = models.IntegerField(choices=((4, "4"), (12, "12"), (24, "24"), ), default=4)
+    
+    job_callable_name = "zojax.django.harvestrss.models.harvest_feed"
     
     def __unicode__(self):
         return self.title or self.url
@@ -34,6 +50,31 @@ class HarvestedFeed(models.Model):
     class Meta:
         verbose_name = _(u"Harvested RSS feed")
         verbose_name_plural = _(u"Harvested RSS feeds")
+
+    def schedule_harvest(self):
+        # Try to find the scheduled jobs for this object
+        jobs = ScheduledJob.objects.filter(callable_name=self.job_callable_name,
+                                 object_id=self.id,
+                                 content_type__pk=ContentType.objects.get_for_model(self.__class__).id,
+                                 status="scheduled")
+        jobs.delete()
+        
+        # The harvesting is disabled, do not schedule a job
+        if not self.active:
+            return
+
+        now = datetime.datetime.now()
+        next_harvest_datetime = datetime.datetime.combine(now.date(), self.harvest_begin_time)
+        if next_harvest_datetime < now:
+            next_harvest_datetime += datetime.timedelta(days=1)
+        harvest_interval = datetime.timedelta(hours=self.harvest_interval)
+        while (next_harvest_datetime - now) > harvest_interval:
+            next_harvest_datetime -= harvest_interval
+        schedule_job(next_harvest_datetime, self.job_callable_name, content_object=self)
+
+    def save(self, *args, **kwargs):
+        super(HarvestedFeed, self).save(*args, **kwargs)
+        self.schedule_harvest()
     
     def harvest(self):
         parsed = feedparser.parse(self.url)

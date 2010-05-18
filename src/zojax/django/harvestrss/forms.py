@@ -66,7 +66,7 @@ class HarvestedFeedAdminForm(ModelForm):
         
     class Meta:
         model = HarvestedFeed
-        fields = ('categories', 'url', 'title', 'source_url', 'feed_type', 'auto_publish')        
+        fields = ('categories', 'url', 'title', 'source_url', 'feed_type', 'auto_publish', 'active', 'harvest_begin_time', 'harvest_interval', )        
         
 
 class ArticleAdminForm(ModelForm):
