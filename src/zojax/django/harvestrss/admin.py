@@ -9,22 +9,21 @@ from zojax.django.harvestrss.models import HarvestedFeed, Article
 from zojax.django.location.models import LocatedItem
 
 
-def display_harvested_on(obj):
-    if not obj.harvested_on:
-        return _(u"Not harvested yet")
-    return dateformat.format(obj.harvested_on, settings.DATETIME_FORMAT)
-display_harvested_on.short_description = _(u"Harvested on")    
+def display_categories(obj):
+    return ", ".join(sorted([cat.title for cat in obj.categories]))
+display_categories.short_description = _(u"Categories")    
 
 
 class HarvestedFeedAdmin(admin.ModelAdmin):
 
     form = HarvestedFeedAdminForm
     
-    list_display = ('title', 'url', 'harvested', display_harvested_on)
+    list_display = ('title', 'url', "active", "harvest_begin_time", "harvest_interval", display_categories)
     list_display_links = ('title', )
+    list_editable = ("active", "harvest_begin_time", "harvest_interval", )
 
     search_fields = ('title', 'url')
-    list_filter = ('harvested', 'feed_type')
+    list_filter = ('feed_type' ,)
 
     fieldsets = (
             (None, {
@@ -38,7 +37,8 @@ class HarvestedFeedAdmin(admin.ModelAdmin):
     
     def save_model(self, request, obj, form, change):
         super(HarvestedFeedAdmin, self).save_model(request, obj, form, change)
-        Category.objects.update_categories(obj, form.cleaned_data['categories'])
+        if "categories" in form.cleaned_data:
+            Category.objects.update_categories(obj, form.cleaned_data['categories'])
     
     def harvest(self, request, queryset):
         feeds_count = queryset.count()
