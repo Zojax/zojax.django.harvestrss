@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.contrib import admin
+from django.core.urlresolvers import reverse
 from django.utils import dateformat
 from django.utils.translation import ugettext_lazy as _, ungettext_lazy
 from zojax.django.categories.models import Category
@@ -14,11 +15,21 @@ def display_categories(obj):
 display_categories.short_description = _(u"Categories")    
 
 
+def display_harvested_items_number(obj):
+    number = Article.objects.filter(feed=obj).count()
+    if number:
+        return '<a href="%s">%i</a>' % (reverse("admin:harvestrss_article_changelist") + "?feed__id__exact=%i" % obj.id, number)
+    else:
+        return str(number) 
+display_harvested_items_number.short_description = _("Articles")
+display_harvested_items_number.allow_tags = True
+
+
 class HarvestedFeedAdmin(admin.ModelAdmin):
 
     form = HarvestedFeedAdminForm
     
-    list_display = ('title', 'url', "active", "harvest_begin_time", "harvest_interval", display_categories)
+    list_display = ('title', 'url', display_harvested_items_number, "active", "harvest_begin_time", "harvest_interval", display_categories)
     list_display_links = ('title', )
     list_editable = ("active", "harvest_begin_time", "harvest_interval", )
 
