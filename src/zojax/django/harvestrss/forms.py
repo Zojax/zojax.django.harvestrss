@@ -2,7 +2,7 @@ from django import forms
 from django.forms.models import ModelForm
 from django.forms.util import ErrorList
 from django.utils.translation import ugettext_lazy as _
-from zojax.django.categories.forms import CategoriesField
+from zojax.django.categories.forms import CategoriesAdminField
 from zojax.django.categories.models import Category
 from zojax.django.harvestrss.models import HarvestedFeed, Article
 from zojax.django.location.forms import LocationChoiceField
@@ -12,7 +12,7 @@ import feedparser
 
 class HarvestedFeedAdminForm(ModelForm):
 
-    categories = CategoriesField(required=False)
+    categories = CategoriesAdminField(required=False)
     
     error_messages = {
         'invalid_feed_url': _(u"This URL does not point to a valid RSS feed."), 
@@ -71,7 +71,7 @@ class HarvestedFeedAdminForm(ModelForm):
 
 class ArticleAdminForm(ModelForm):
     
-    categories = CategoriesField(required=True)
+    categories = CategoriesAdminField(required=True)
     location = LocationChoiceField(required=False)
 
     def __init__(self, *args, **kwargs):
