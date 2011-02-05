@@ -90,6 +90,7 @@ class HarvestedFeed(CurrentSiteModelMixin):
         parsed = feedparser.parse(self.url)
         now = datetime.datetime.now()
         cnt = 0
+        sites = list(self.sites.all())
         for entry in parsed.entries:
             url = getattr(entry, 'link', None)
             if not url:
@@ -125,6 +126,8 @@ class HarvestedFeed(CurrentSiteModelMixin):
             item.article_published_on = article_published_on
             if self.auto_publish:
                 item.published = True
+            item.save()
+            map(item.sites.add, sites)
             item.save()
             Category.objects.update_categories(item, self.categories)
             ArticleIdentifier(feed=self, identifier=identifier).save()
